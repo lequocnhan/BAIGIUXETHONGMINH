@@ -1,0 +1,7 @@
+2026/05/05-23:42:29.735 aac Reusing MANIFEST C:\Users\Acer\AppData\Local\Temp\flutter_tools.c224c464\flutter_tools_chrome_device.4bd047bf\Default\IndexedDB\http_localhost_64710.indexeddb.leveldb/MANIFEST-000001
+2026/05/05-23:42:29.736 aac Recovering log #4
+2026/05/05-23:42:29.736 aac Reusing old log C:\Users\Acer\AppData\Local\Temp\flutter_tools.c224c464\flutter_tools_chrome_device.4bd047bf\Default\IndexedDB\http_localhost_64710.indexeddb.leveldb/000004.log 
+2026/05/05-23:42:29.741 aac Level-0 table #8: started
+2026/05/05-23:42:29.742 aac Level-0 table #8: 1955 bytes OK
+2026/05/05-23:42:29.743 aac Delete type=0 #4
+2026/05/05-23:42:29.744 5cac Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)

@@ -17,7 +17,6 @@ class _OtpPageState extends State<OtpPage> {
     String otpCode = _otpController.text.trim();
     if (otpCode.isEmpty) return;
 
-    // Hiện vòng xoay chờ xác nhận
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -25,13 +24,10 @@ class _OtpPageState extends State<OtpPage> {
     );
 
     try {
-      // 1. KIỂM TRA NẾU ĐANG CHẠY TRÊN WEB
       if (widget.userData['isWeb'] == true) {
         ConfirmationResult webResult = widget.userData['webResult'];
         await webResult.confirm(otpCode);
-      } 
-      // 2. KIỂM TRA NẾU ĐANG CHẠY TRÊN MOBILE
-      else {
+      } else {
         PhoneAuthCredential credential = PhoneAuthProvider.credential(
           verificationId: widget.userData['verificationId'],
           smsCode: otpCode,
@@ -39,26 +35,38 @@ class _OtpPageState extends State<OtpPage> {
         await FirebaseAuth.instance.signInWithCredential(credential);
       }
 
-      // 3. NẾU XÁC THỰC THÀNH CÔNG -> LƯU VÀO DATABASE
+      // --- PHẦN SỬA ĐỔI: TẠO CẤU TRÚC DATABASE CHUẨN ---
       String username = widget.userData['username'];
       await FirebaseDatabase.instance.ref("Users/$username").set({
+        "username": username, // Lưu username động
         "name": widget.userData['name'],
         "password": widget.userData['password'],
         "phone": widget.userData['phone'],
-        "balance": 100000, // Tặng 100k cho user mới
+        "balance": "100000",        // Khởi tạo 100k (Dùng kiểu String để đồng bộ)
+        "in_parking": false,        // Mặc định ở ngoài bãi
+        "current_vehicle": "",      // Chưa có xe trong bãi
+        "face_url": "",             // Chưa có Face ID
+        "vehicles": {               // Tạo sẵn node vehicles mặc định
+          "xe_01": {
+            "plate": "CHƯA ĐĂNG KÝ",
+            "type": "motorcycle"
+          }
+        },
+        "history": {}               // Lịch sử giao dịch trống
       });
 
+      if (!mounted) return;
       Navigator.pop(context); // Tắt vòng xoay
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Đăng ký thành công!"))
       );
 
-      // Quay về trang đầu tiên (Trang Đăng nhập)
       Navigator.of(context).popUntil((route) => route.isFirst);
 
     } catch (e) {
-      Navigator.pop(context); // Tắt vòng xoay
+      if (!mounted) return;
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Mã OTP sai hoặc lỗi: ${e.toString()}"))
       );

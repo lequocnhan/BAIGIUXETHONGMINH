@@ -1,45 +1,22 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# --- KỲ BỔ SUNG CHO ĐỒ ÁN ---
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# Loại bỏ toàn bộ folder chứa ảnh khuôn mặt (Sửa lại tên folder cho đúng với dự án của ông)
+faces/
+captured_faces/
+detected_faces/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# Loại bỏ các file ảnh lẻ tẻ trong thư mục gốc
+*.jpg
+*.jpeg
+*.png
+*.webp
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
+# Loại bỏ folder build của Python (nếu có dùng Flask)
+__pycache__/
+instance/
+.pytest_cache/
 
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Loại bỏ file Excel nếu ông có dùng tool gỡ pass hay tài liệu cá nhân
+*.xlsx
+*.xls
+*.csv

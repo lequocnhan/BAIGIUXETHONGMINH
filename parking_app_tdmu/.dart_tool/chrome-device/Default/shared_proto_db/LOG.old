@@ -1,0 +1,36 @@
+2026/05/07-09:44:15.909 320c Reusing MANIFEST C:\Users\Acer\AppData\Local\Temp\flutter_tools.126b748d\flutter_tools_chrome_device.bc7b2cf0\Default\shared_proto_db/MANIFEST-000001
+2026/05/07-09:44:15.910 320c Recovering log #42
+2026/05/07-09:44:15.912 320c Reusing old log C:\Users\Acer\AppData\Local\Temp\flutter_tools.126b748d\flutter_tools_chrome_device.bc7b2cf0\Default\shared_proto_db/000042.log 
+2026/05/07-09:44:15.912 320c Delete type=0 #3
+2026/05/07-09:44:15.912 320c Delete type=0 #4
+2026/05/07-09:44:15.912 320c Delete type=0 #7
+2026/05/07-09:44:15.912 320c Delete type=2 #8
+2026/05/07-09:44:15.912 320c Delete type=0 #10
+2026/05/07-09:44:15.912 320c Delete type=2 #11
+2026/05/07-09:44:15.913 320c Delete type=0 #13
+2026/05/07-09:44:15.913 320c Delete type=2 #14
+2026/05/07-09:44:15.913 320c Delete type=0 #16
+2026/05/07-09:44:15.913 320c Delete type=2 #17
+2026/05/07-09:44:15.913 320c Delete type=0 #19
+2026/05/07-09:44:15.913 320c Delete type=2 #21
+2026/05/07-09:44:15.913 320c Delete type=0 #23
+2026/05/07-09:44:15.913 320c Delete type=2 #24
+2026/05/07-09:44:15.913 320c Delete type=0 #26
+2026/05/07-09:44:15.913 320c Delete type=2 #27
+2026/05/07-09:44:15.913 320c Delete type=0 #29
+2026/05/07-09:44:15.913 320c Delete type=2 #30
+2026/05/07-09:44:15.913 320c Delete type=0 #32
+2026/05/07-09:44:15.913 320c Delete type=0 #36
+2026/05/07-09:44:15.913 320c Delete type=0 #39
+2026/05/07-09:44:38.024 320c Level-0 table #46: started
+2026/05/07-09:44:38.028 320c Level-0 table #46: 132630 bytes OK
+2026/05/07-09:44:38.029 320c Delete type=0 #42
+2026/05/07-09:44:38.031 320c Compacting 4@0 + 1@1 files
+2026/05/07-09:44:38.040 320c Generated table #47@0: 1867 keys, 188912 bytes
+2026/05/07-09:44:38.040 320c Compacted 4@0 + 1@1 files => 188912 bytes
+2026/05/07-09:44:38.041 320c compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/05/07-09:44:38.041 320c Delete type=2 #34
+2026/05/07-09:44:38.041 320c Delete type=2 #37
+2026/05/07-09:44:38.041 320c Delete type=2 #40
+2026/05/07-09:44:38.041 320c Delete type=2 #43
+2026/05/07-09:44:38.041 320c Delete type=2 #46

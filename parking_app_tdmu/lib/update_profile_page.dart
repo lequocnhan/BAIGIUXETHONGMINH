@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class UpdateProfilePage extends StatefulWidget {
   final Map userData;
@@ -14,11 +15,10 @@ class UpdateProfilePage extends StatefulWidget {
 
 class _UpdateProfilePageState extends State<UpdateProfilePage> {
   final _nameController = TextEditingController();
-  File? _image;
+  XFile? _imageFile; 
   bool _isLoading = false;
   List<Map<String, dynamic>> _vehicleList = [];
 
-  // ĐỊA CHỈ IP LAPTOP CỦA NHÂN
   final String laptopIp = "192.168.1.205"; 
 
   @override
@@ -29,7 +29,6 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
   }
 
   void _loadVehicles() {
-    // Sửa lỗi Null Safety khi load danh sách xe
     if (widget.userData['vehicles'] != null) {
       Map? vehiclesRaw = widget.userData['vehicles'] as Map?;
       vehiclesRaw?.forEach((key, value) {
@@ -44,9 +43,12 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 50);
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.camera, 
+      imageQuality: 50
+    );
     if (pickedFile != null) {
-      setState(() => _image = File(pickedFile.path));
+      setState(() => _imageFile = pickedFile);
     }
   }
 
@@ -102,12 +104,19 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
   }
 
   Future<bool> _sendImageToLaptop(String username) async {
-    if (_image == null) return true;
+    if (_imageFile == null) return true;
     try {
       var request = http.MultipartRequest('POST', Uri.parse('http://$laptopIp:5000/upload_face'));
       request.fields['username'] = username;
-      request.files.add(await http.MultipartFile.fromPath('image', _image!.path));
-      var response = await request.send().timeout(const Duration(seconds: 10));
+      
+      if (kIsWeb) {
+        var bytes = await _imageFile!.readAsBytes();
+        request.files.add(http.MultipartFile.fromBytes('image', bytes, filename: '$username.jpg'));
+      } else {
+        request.files.add(await http.MultipartFile.fromPath('image', _imageFile!.path));
+      }
+
+      var response = await request.send().timeout(const Duration(seconds: 15));
       return response.statusCode == 200;
     } catch (e) {
       print("Lỗi gửi ảnh: $e");
@@ -117,21 +126,15 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
 
   Future<void> _saveAll() async {
     setState(() => _isLoading = true);
-    
-    // Sửa lỗi Null ở dòng username
     String username = (widget.userData['username'] ?? "Nhan").toString();
     final dbRef = FirebaseDatabase.instance.ref("Users/$username");
 
     try {
-      // 1. Gửi ảnh (nếu có)
-      if (_image != null) {
+      if (_imageFile != null) {
         await _sendImageToLaptop(username);
       }
-
-      // 2. Lưu tên mới
       await dbRef.update({"name": _nameController.text});
 
-      // 3. Đóng gói lại danh sách xe để gửi lên Firebase
       Map<String, dynamic> vehiclesMap = {};
       for (int i = 0; i < _vehicleList.length; i++) {
         vehiclesMap["xe_0${i + 1}"] = {
@@ -152,6 +155,16 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Logic xử lý ảnh hiển thị cho cả Web và Mobile
+    ImageProvider? imageProvider;
+    if (_imageFile != null) {
+      if (kIsWeb) {
+        imageProvider = NetworkImage(_imageFile!.path);
+      } else {
+        imageProvider = FileImage(File(_imageFile!.path));
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Hồ sơ & Danh sách xe"), backgroundColor: const Color(0xFF1E3C72)),
       body: _isLoading ? const Center(child: CircularProgressIndicator()) : SingleChildScrollView(
@@ -164,8 +177,10 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
                 child: CircleAvatar(
                   radius: 60,
                   backgroundColor: Colors.grey[200],
-                  backgroundImage: _image != null ? FileImage(_image!) : null,
-                  child: _image == null ? const Icon(Icons.camera_alt, size: 40, color: Color(0xFF1E3C72)) : null,
+                  backgroundImage: imageProvider,
+                  child: imageProvider == null 
+                      ? const Icon(Icons.camera_alt, size: 40, color: Color(0xFF1E3C72)) 
+                      : null,
                 ),
               ),
             ),
@@ -201,7 +216,10 @@ class _UpdateProfilePageState extends State<UpdateProfilePage> {
               height: 55,
               child: ElevatedButton(
                 onPressed: _saveAll,
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E3C72), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3C72), 
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                ),
                 child: const Text("LƯU TẤT CẢ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             )
