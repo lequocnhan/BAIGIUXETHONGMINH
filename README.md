@@ -130,9 +130,3 @@ flutter run
 3. **Quản lý dữ liệu lớn:** Thư mục dữ liệu huấn luyện hình ảnh của YOLOv8 nên được tách biệt lưu trữ trên các Cloud Storage [Lưu trữ đám mây] như Google Drive hoặc Roboflow để tránh làm nặng bộ lưu trữ mã nguồn cục bộ.
 
 ---
-
-## 👨‍💻 Tác giả (Author)
-
-* **Nguyễn Ngô Vũ Hoàng Gia** & **Lê Quốc Nhân** & **Lê Thành Tài**.
-* Nếu hệ thống này giúp ích cho bài tập lớn hoặc đồ án của bạn, hãy tặng dự án 1 ⭐ Star trên GitHub nhé!
-"""
