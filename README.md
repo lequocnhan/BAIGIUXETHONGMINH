@@ -1,4 +1,4 @@
-"""# 🚗 TDMU Smart Parking System - Hệ thống bãi đỗ xe thông minh
+# 🚗 TDMU Smart Parking System - Hệ thống bãi đỗ xe thông minh
 
 Hệ thống quản lý bãi giữ xe thông minh toàn diện tích hợp AI (Artificial Intelligence) [Trí tuệ nhân tạo], tự động hóa quy trình nhận diện biển số xe và xác thực khuôn mặt chủ xe. Hệ thống kết hợp ứng dụng di động đa nền tảng Framework [Khung làm việc] Flutter, Backend [Hệ thống máy chủ] Python (Flask) và Cloud Database [Cơ sở dữ liệu đám mây] Firebase Realtime Database để mang lại giải pháp an ninh tối ưu, ngăn chặn tình trạng gian lận và mất cắp phương tiện.
 
