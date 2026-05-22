@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDMU Smart Parking Real-time Navigation</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        /* Style hộp thông báo khoảng cách đường đi góc trên bên phải */
+        .nearest-box {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 1000;
+            color: #333;
+            border-left: 4px solid #0074D9;
+        }
+        /* Ẩn cái bảng chỉ dẫn bằng chữ (rẽ trái/rẽ phải) rườm rà của thư viện đi cho sạch màn hình app */
+        .leaflet-routing-container {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+    <div id="info-box" class="nearest-box">📡 Đang quét tín hiệu GPS của bạn...</div>
+
+    <script>
+        // =================================================================
+        // 1. DANH SÁCH CÁC BÃI XE TẠI TRƯỜNG TDMU
+        // =================================================================
+        const parkingLots = [
+            { name: "Bãi xe Cổng 1 (Trung tâm)", lat: 10.9807, lng: 106.6748, color: "blue" },
+            { name: "Bãi xe Cổng 2 (Xưởng thực hành)", lat: 10.9815, lng: 106.6755, color: "green" },
+            { name: "Bãi xe Block B (Khu lý thuyết)", lat: 10.9803, lng: 106.6762, color: "purple" },
+            { name: "Bãi xe Khu Thể Thao (Sân bóng)", lat: 10.9792, lng: 106.6751, color: "orange" }
+        ];
+
+        // Khởi tạo bản đồ mặc định lấy tâm ở TDMU trước khi có GPS
+        var map = L.map('map').setView([10.9805, 106.6745], 16);
+
+        // Đổ nền bản đồ OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Các biến quản lý marker và luồng chỉ đường của user
+        var userMarker = null;
+        var routingControl = null;
+        var userLat = null;
+        var userLng = null;
+
+        // Định nghĩa icon màu đỏ cho Vị trí hiện tại của User
+        var userIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        // =================================================================
+        // 2. HÀM XỬ LÝ VẼ ĐƯỜNG ĐI TỪ GPS ĐẾN BÃI XE ĐƯỢC CHỌN
+        // =================================================================
+        function drawRouteTo(targetLat, targetLng, targetName) {
+            if (userLat === null || userLng === null) return;
+
+            // Xóa tuyến đường cũ nếu có
+            if (routingControl !== null) {
+                map.removeControl(routingControl);
+            }
+
+            // Gọi bộ định tuyến tính toán đường đi thực tế
+            routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(userLat, userLng),
+                    L.latLng(targetLat, targetLng)
+                ],
+                lineOptions: {
+                    styles: [{ color: '#0074D9', opacity: 0.8, weight: 6 }] // Đường line màu xanh đậm chuẩn Google Maps
+                },
+                createMarker: function() { return null; }, // Ẩn ghim phụ của bộ định tuyến
+                addWaypoints: false,
+                routeWhileDragging: false
+            })
+            .on('routesfound', function(e) {
+                var routes = e.routes;
+                var summary = routes[0].summary;
+                var realDistance = summary.totalDistance; 
+                var realTime = Math.round(summary.totalTime / 60); 
+
+                var distanceText = realDistance > 1000 
+                    ? (realDistance / 1000).toFixed(1) + " km" 
+                    : Math.round(realDistance) + " mét";
+
+                document.getElementById("info-box").innerHTML = 
+                    `🛣️ Đường đi đến:<br><b>${targetName}</b><br>📏 Quãng đường: <b>${distanceText}</b> (~${realTime} phút)`;
+            })
+            .addTo(map);
+        }
+
+        // Hàm tính khoảng cách chim bay để quét tìm bãi xe gần nhất
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; 
+            const phi1 = lat1 * Math.PI / 180; const phi2 = lat2 * Math.PI / 180;
+            const deltaPhi = (lat2 - lat1) * Math.PI / 180; const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+        }
+
+        // =================================================================
+        // 3. GỌI API TRÌNH DUYỆT ĐỂ LẤY TOẠ ĐỘ GPS THỰC TẾ
+        // =================================================================
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    // Lấy thành công tọa độ thực tế từ chip GPS thiết bị
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+
+                    // Cắm ghim đỏ tại vị trí thực tế của ông
+                    userMarker = L.marker([userLat, userLng], { icon: userIcon })
+                        .addTo(map)
+                        .bindPopup("<b>Vị trí thực tế của bạn</b>")
+                        .openPopup();
+
+                    // Tự động quét tìm bãi xe gần vị trí thực tế của ông nhất
+                    var minDistance = Infinity;
+                    var defaultLot = null;
+
+                    parkingLots.forEach(function(lot) {
+                        var dist = calculateDistance(userLat, userLng, lot.lat, lot.lng);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            defaultLot = lot;
+                        }
+                    });
+
+                    // Vẽ đường đến bãi gần nhất ngay khi xác định được vị trí
+                    if (defaultLot) {
+                        drawRouteTo(defaultLot.lat, defaultLot.lng, defaultLot.name);
+                    }
+                },
+                function(error) {
+                    // Nếu dính lỗi chặn quyền bảo mật hoặc phần cứng không phản hồi
+                    document.getElementById("info-box").style.borderLeft = "4px solid #ff0000";
+                    document.getElementById("info-box").innerHTML = "❌ Lỗi: Không thể truy cập GPS thật của bạn.<br>Vui lòng cho phép quyền vị trí trên trình duyệt!";
+                },
+                { enableHighAccuracy: true, timeout: 10000 } // Cấu hình ép dùng GPS độ chính xác cao nhất
+            );
+        } else {
+            document.getElementById("info-box").innerHTML = "❌ Trình duyệt của bạn không hỗ trợ định vị GPS.";
+        }
+
+        // =================================================================
+        // 4. KHỞI TẠO CÁC GHIM BÃI XE VÀ BẮT SỰ KIỆN CLICK CHỌN ĐỔI ĐƯỜNG VẼ
+        // =================================================================
+        parkingLots.forEach(function(lot) {
+            let parkingIcon = L.icon({
+                iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${lot.color}.png`,
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+
+            var marker = L.marker([lot.lat, lot.lng], { icon: parkingIcon }).addTo(map);
+            marker.bindPopup(`<b>${lot.name}</b><br>👉 Bấm vào ghim để chỉ đường`);
+
+            // Sự kiện Click đổi đích đến dựa trên vị trí thực tế của ông
+            marker.on('click', function() {
+                if (userLat !== null && userLng !== null) {
+                    drawRouteTo(lot.lat, lot.lng, lot.name);
+                    marker.openPopup();
+                } else {
+                    alert("Chưa nhận được tín hiệu vị trí hiện tại của bạn!");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
